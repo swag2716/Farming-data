@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	"Farming_data/routes"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -24,6 +26,8 @@ func main() {
 
 	router := gin.New()
 	router.Use(gin.Logger())
+
+	routes.FarmingRoutes(router)
 
 	router.Run(":" + port)
 }
