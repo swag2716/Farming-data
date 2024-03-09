@@ -11,17 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func getSowingDateForFarm(farmId string) (time.Time, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
-	defer cancel()
-	var farm models.Farm
-	err := farmCollection.FindOne(ctx, bson.M{"farm_id": farmId}).Decode(&farm)
-	if err != nil {
-		return time.Time{}, err
-	}
-
-	return time.Parse("2006-01-02", farm.SowingDate)
-}
 func getFarmerByFarmerID(farmerId string) (models.Farmer, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
@@ -34,15 +23,54 @@ func getFarmerByFarmerID(farmerId string) (models.Farmer, error) {
 	return farmer, nil
 }
 
+func GetAllFarms() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+
+		result, err := farmCollection.Find(ctx, bson.M{})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		defer result.Close(ctx)
+
+		var allFarms []models.Farm
+		if err := result.All(ctx, &allFarms); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, allFarms)
+	}
+}
+
 func GetDueSchedules() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
 
-		result, err := scheduleCollection.Find(ctx, bson.M{})
+		farmId := c.Param("farmId")
+
+		var farm models.Farm
+		err := farmCollection.FindOne(ctx, bson.M{"farm_id": farmId}).Decode(&farm)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		sowingDate, err := time.Parse("2006-01-02", farm.SowingDate)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		result, err := scheduleCollection.Find(ctx, bson.M{"farm_id": farmId})
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
 		}
 
 		defer result.Close(ctx)
@@ -52,12 +80,6 @@ func GetDueSchedules() gin.HandlerFunc {
 		for result.Next(ctx) {
 			var schedule models.Schedule
 			if err := result.Decode(&schedule); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
-
-			sowingDate, err := getSowingDateForFarm(schedule.FarmId)
-			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
