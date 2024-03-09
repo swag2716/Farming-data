@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"Farming_data/middleware"
 	"Farming_data/routes"
 
 	"github.com/gin-gonic/gin"
@@ -25,6 +26,7 @@ func main() {
 	}
 
 	router := gin.New()
+	middleware.CorsSettings(router)
 	router.Use(gin.Logger())
 
 	routes.FarmingRoutes(router)

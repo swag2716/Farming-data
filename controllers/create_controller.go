@@ -184,6 +184,7 @@ func CreateSchedule() gin.HandlerFunc {
 
 		schedule.ID = primitive.NewObjectID()
 		schedule.ScheduleId = schedule.ID.Hex()
+		schedule.FarmerId = farm.FarmerId
 
 		result, insertErr := scheduleCollection.InsertOne(ctx, schedule)
 		if insertErr != nil {

@@ -13,4 +13,6 @@ func FarmingRoutes(incomingRoutes *gin.Engine) {
 	incomingRoutes.POST("/create_farm", controllers.CreateFarm())
 	incomingRoutes.POST("/create_schedule", controllers.CreateSchedule())
 	incomingRoutes.GET("/get_due_schedules", controllers.GetDueSchedules())
+	incomingRoutes.GET("/get_all_farmers_growing_crop", controllers.GetAllFarmersGrowingCrop())
+	incomingRoutes.GET("/calculate_bill/:farmerId", controllers.CalculateBillOfMaterials())
 }

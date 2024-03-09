@@ -37,4 +37,5 @@ type Schedule struct {
 	Quantity        float64            `bson:"quantity" json:"quantity"`
 	QuantityUnit    string             `bson:"quantity_unit" json:"quantity_unit"`
 	FarmId          string             `bson:"farm_id" json:"farm_id" validate:"required"`
+	FarmerId        string             `bson:"farmer_id" json:"farmer_id"`
 }
